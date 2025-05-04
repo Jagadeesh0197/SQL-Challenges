@@ -1,1 +1,1 @@
-# leetcode_sql
+# SQL-Challenges
