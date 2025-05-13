@@ -55,7 +55,7 @@ SELECT name, ROUND(population/1000000, 2), ROUND(gdp/1000000000,2)
 FROM world
 WHERE continent = 'South America';
 
-  -- MSSQL answer [CAST used to convert the datatype]
+  -- 9. MSSQL answer [CAST used to convert the datatype]
 SELECT name, ROUND(CAST(population AS DECIMAL)/1000000, 2), ROUND(CAST(gdp AS DECIMAL)/1000000000,2)
 FROM world
 WHERE continent = 'South America';
