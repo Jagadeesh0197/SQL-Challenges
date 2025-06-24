@@ -1,4 +1,4 @@
--------------------------------------------------- 1. SELECT basics ---------------------------------------------------------
+-------------------------------------------------- 1. SELECT basics --------------------------------------
   -- 1. Population of Germany
 SELECT population FROM world
 WHERE name='Germany';
@@ -11,7 +11,7 @@ WHERE name IN ('Sweden','Norway','Denmark');
 SELECT name, area FROM world
 WHERE area BETWEEN 200000 AND 250000;
 
------------------------------------------------- 2. SELECT from WORLD -----------------------------------------------------
+------------------------------------------------ 2. SELECT from WORLD --------------------------------------
   -- 1. Data Exploring
 SELECT name, continent, population FROM world;
 
@@ -49,8 +49,8 @@ FROM world
 WHERE (area > 3000000 or population > 250000000)
   AND NOT (area > 3000000 AND population > 250000000);
 
-  -- 9. shows population in millions and GDP in billions [ROUND is used to round of to any precision. for more (https://sqlzoo.net/wiki/ROUND)]
-  -- MYSQL answer 
+  -- 9. shows population in millions and GDP in billions [ROUND is used to round of to any precision. 
+--for more (https://sqlzoo.net/wiki/ROUND)] MYSQL answer 
 SELECT name, ROUND(population/1000000, 2), ROUND(gdp/1000000000,2)
 FROM world
 WHERE continent = 'South America';
@@ -65,7 +65,7 @@ WHERE continent = 'South America';
 SELECT name, ROUND(gdp/population,-3)
 FROM world
 WHERE gdp>= 1000000000000;
--------------------------------------------------3. SELECT from Nobel Tutorial --------------------------------------------
+-------------------------------------------------3. SELECT from Nobel Tutorial -----------------------------------
 
 -- 1. Winners from 1950 
 SELECT yr, subject, winner
@@ -129,7 +129,7 @@ WHERE (subject = 'Medicine' AND yr < 1910)
 OR
 (subject = 'Literature' AND yr >= 2004)
 
------------------------------------------------4. SELECT within SELECT Tutorial--------------------------------------------
+-----------------------------------------------4. SELECT within SELECT Tutorial-------------------------------
 --1. Bigger than Russia [population bigger than russia]
 SELECT name FROM world
 WHERE population > (SELECT population FROM world
@@ -185,7 +185,9 @@ WHERE name IN (SELECT MIN(name)
 -- popopaltion less than 25000000 and in all its respective countries]
 SELECT name, continent, population FROM WORLD x
 WHERE (SELECT COUNT(name) FROM WORLD y
-WHERE x.continent = y.continent ) = (SELECT COUNT(name) FROM WORLD z WHERE  x.continent = z.continent AND population <= 25000000)
+WHERE x.continent = y.continent ) = (SELECT COUNT(name) 
+	                             FROM WORLD z 
+	                             WHERE  x.continent = z.continent AND population <= 25000000)
 
 --10. Three time bigger
 SELECT name, continent FROM world x
@@ -417,3 +419,151 @@ FROM actor d JOIN  casting a ON d.id = a.actorid
 JOIN casting b ON a.movieid = b.movieid
 JOIN actor c ON (b.actorid = c.id AND c.name = 'Art Garfunkel')
 where d.id != c.id
+
+-----------------------------------------------8. Using Null --------------------------------------------
+--1. List the teachers who have NULL for their department.
+SELECT name 
+FROM teacher
+WHERE dept IS NULL
+
+--2. INNER JOIN misses the teachers with no department and the departments with no teacher.
+SELECT teacher.name, dept.name
+FROM teacher INNER JOIN dept ON (teacher.dept=dept.id)
+
+--3. Use a different JOIN so that all teachers are listed.
+SELECT t.name, d.name
+FROM teacher t LEFT JOIN dept d ON t.dept = d.id
+
+--4. Use a different JOIN so that all departments are listed.
+SELECT t.name, d.name
+FROM teacher t RIGHT JOIN dept d ON (t.dept = d.id)
+
+--5. Use COALESCE to print the mobile number. Use the number '07986 444 2266' if there is no number given. 
+-- Show teacher name and mobile number or '07986 444 2266'
+SELECT name, COALESCE(mobile, '07986 444 2266')
+FROM teacher
+
+--6. Use the COALESCE function and a LEFT JOIN to print the teacher name and department name. 
+-- Use the string 'None' where there is no department.
+SELECT t.name, COALESCE(d.name,'None')
+FROM teacher t LEFT JOIN dept d ON (t.dept = d.id)
+
+--7. Use COUNT to show the number of teachers and the number of mobile phones.
+SELECT COUNT(name), COUNT(mobile) FROM teacher
+
+--8. Use COUNT and GROUP BY dept.name to show each department and the number of staff. 
+-- Use a RIGHT JOIN to ensure that the Engineering department is listed.
+SELECT d.name, COUNT(t.name)
+FROM teacher t RIGHT JOIN dept d ON t.dept = d.id
+GROUP BY d.name
+
+--9. Use CASE to show the name of each teacher followed by 'Sci' if the teacher is in dept 1 or 2 and 'Art' otherwise.
+SELECT 
+        t.name, 
+	CASE 
+	    WHEN t.dept IN ('1','2') THEN 'Sci'
+            ELSE 'Art' END
+FROM teacher t
+
+--10. Use CASE to show the name of each teacher followed by 'Sci' if the teacher is in dept 1 or 2, 
+-- show 'Art' if the teacher's dept is 3 and 'None' otherwise.
+SELECT 
+       name,
+       CASE
+           WHEN dept IN (1, 2) THEN 'Sci'
+           WHEN dept = 3 THEN 'Art'
+           ELSE 'None' END
+FROM teacher
+
+-----------------------------------------------9. Self join --------------------------------------------
+--1. How many stops are in the database.
+SELECT COUNT(*) FROM stops
+
+--2. Find the id value for the stop 'Craiglockhart'
+SELECT id FROM stops
+WHERE name = 'Craiglockhart'
+
+--3. Give the id and the name for the stops on the '4' 'LRT' service.
+SELECT s.id, s.name
+FROM stops s JOIN route r ON (r.stop= s.id)
+WHERE r.company = 'LRT' and r.num = '4'
+
+--4. The query shown gives the number of routes that visit either London Road (149) or Craiglockhart (53).
+-- Run the query and notice the two services that link these stops have a count of 2. 
+-- Add a HAVING clause to restrict the output to these two routes.
+SELECT company, num, COUNT(*)
+FROM route WHERE stop=149 OR stop=53
+GROUP BY company, num
+HAVING COUNT(*) > 1
+
+--5. Execute the self join shown and observe that b.stop gives all the places you can get to from Craiglockhart, 
+--without changing routes. Change the query so that it shows the services from Craiglockhart to London Road.
+SELECT a.company, a.num, a.stop, b.stop
+FROM route a JOIN route b ON (a.company=b.company AND a.num=b.num)
+WHERE a.stop=53 and b.stop = 149
+
+--6. The query shown is similar to the previous one, however by joining two copies of the stops table 
+-- we can refer to stops by name rather than by number. Change the query so that the services between 
+--'Craiglockhart' and 'London Road' are shown. If you are tired of these places try 'Fairmilehead' against 'Tollcross'
+SELECT a.company, a.num, stopa.name, stopb.name
+FROM route a JOIN route b ON
+  (a.company=b.company AND a.num=b.num)
+  JOIN stops stopa ON (a.stop=stopa.id)
+  JOIN stops stopb ON (b.stop=stopb.id)
+WHERE stopa.name='Craiglockhart' AND stopb.name = 'London Road'
+
+--7. Give a list of all the services which connect stops 115 and 137 ('Haymarket' and 'Leith')
+SELECT DISTINCT  r.company, r.num
+FROM route r JOIN route r1 ON (r.company= r1.company AND r.num = r1.num)
+WHERE r.stop = 115 AND r1.stop = 137
+
+--8. Give a list of the services which connect the stops 'Craiglockhart' and 'Tollcross'
+SELECT r.company, r.num
+FROM route r 
+JOIN route r1 ON (r.company=r1.company AND r.num=r1.num)
+JOIN stops ast ON (r.stop = ast.id)
+JOIN stops bst ON (r1.stop = bst.id)
+WHERE ast.name = 'Craiglockhart' AND bst.name = 'Tollcross'
+
+--9. Give a distinct list of the stops which may be reached from 'Craiglockhart' by taking one bus, 
+-- including 'Craiglockhart' itself, offered by the LRT company. Include the company and bus no. of the relevant services.
+SELECT DISTINCT s2.name, r1.company, r2.num
+FROM route r1 JOIN route r2 ON (r1.company = r2.company AND r1.num = r2.num AND r2.company='LRT')
+JOIN stops s1 ON (r1.stop = s1.id AND s1.name = 'Craiglockhart')
+JOIN stops s2 ON (r2.stop = s2.id)
+ORDER BY s2.name
+
+--10. Find the routes involving two buses that can go from Craiglockhart to Lochend. Show the bus no. and 
+-- company for the first bus, the name of the stop for the transfer, and the bus no. and company for the second bus
+select DISTINCT bus1.num, bus1.company, bus1.name, bus2.num, bus2.company from
+  (SELECT DISTINCT r1.num, r1.company, s2.name from route r1
+    -- self join on service id (service id is company and bus number)
+    -- this gives me all routs for curret service id
+    join route r2
+      ON (r1.company=r2.company AND r1.num=r2.num)
+    -- this gives me starting bus stops with name Craiglockhart
+    join stops s1
+      ON (r1.stop=s1.id AND s1.name='Craiglockhart')
+    -- gives me final route:
+    -- list of all the stops for all the buses
+    -- which can be reached from Craiglockhart
+    join stops s2
+      ON (s2.id=r2.stop)
+  ) AS bus1
+ JOIN
+  -- next is simillar to query above
+  -- this gives me all the stops for all the buses
+  -- which can be reached from Lochend
+  (SELECT DISTINCT r1.num, r1.company, s2.name from route r1
+    join route r2
+      ON (r1.company=r2.company AND r1.num=r2.num)
+    join stops s1
+      ON (r1.stop=s1.id AND s1.name='Lochend')
+    join stops s2
+      ON (s2.id=r2.stop)
+  ) AS bus2
+    -- join gives me full routes
+    -- with transfer stops
+    -- that can be reached from both of routes
+    ON bus1.name=bus2.name
+ORDER BY bus1.num, bus1.company, bus1.name, bus2.num, bus2.company
