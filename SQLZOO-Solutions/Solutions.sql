@@ -1,6 +1,7 @@
 -------------------------------------------------- 1. SELECT basics --------------------------------------
-## select-basics
-  -- 1. Population of Germany
+## SELECT basics
+### Population of Germany
+-- 1. Population of Germany
 SELECT population FROM world
 WHERE name='Germany';
 
