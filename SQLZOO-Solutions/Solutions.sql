@@ -1,5 +1,5 @@
 -------------------------------------------------- 1. SELECT basics --------------------------------------
-## SELECT basics
+#select-basics
 ### Population of Germany
 -- 1. Population of Germany
 SELECT population FROM world
